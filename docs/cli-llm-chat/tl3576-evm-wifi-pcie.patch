@@ -1,0 +1,70 @@
+--- /home/na/sdk/kernel-6.1/arch/arm64/boot/dts/rockchip/tl3576-evm.dts.bak-wifi-pcie-20261027	2026-08-05 09:53:20.000000000 +0800
++++ /home/na/sdk/kernel-6.1/arch/arm64/boot/dts/rockchip/tl3576-evm.dts	2026-10-28 13:34:41.066306236 +0800
+@@ -58,6 +58,27 @@
+ 		compatible = "sprd,sc2355-wifi";
+ 	};
+ 
++	/*
++	 * AP6275P (PCIe): WL_REG_ON is gpio1 RK_PC6.
++	 * Expose it as vpcie3v3 so pcie-dw-rockchip enables the chip
++	 * *before* link training (fixes LTSSM 0x3 / no 14e4:449d).
++	 * Do not also claim WIFI,poweren_gpio on the same line — rfkill
++	 * toggles this regulator via power_ctrl_by_pmu instead.
++	 */
++	vcc3v3_pcie0: vcc3v3-pcie0 {
++		compatible = "regulator-fixed";
++		regulator-name = "vcc3v3_pcie0";
++		regulator-min-microvolt = <3300000>;
++		regulator-max-microvolt = <3300000>;
++		enable-active-high;
++		gpio = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
++		startup-delay-us = <20000>;
++		regulator-boot-on;
++		vin-supply = <&vcc_3v3_s0>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&wifi_poweren_gpio>;
++	};
++
+ 	wireless_wlan: wireless-wlan {
+ 		compatible = "wlan-platdata";
+ 		wifi_chip_type = "ap6275p";
+@@ -65,6 +86,9 @@
+ 		pinctrl-0 = <&wifi_host_wake_irq>;
+ 		WIFI,host_wake_irq = <&gpio1 RK_PD4 GPIO_ACTIVE_HIGH>;
+ 		/delete-property/ WIFI,host_wake_irq;
++		power_ctrl_by_pmu;
++		power_pmu_regulator = "vcc3v3_pcie0";
++		power_pmu_enable_level = <1>;
+ 		status = "okay";
+ 	};
+ 
+@@ -655,6 +679,29 @@
+ 	power-supply = <&vcc3v3_lcd_n>;
+ };
+ 
++/*
++ * Merge onto rk3576-evb1.dtsi &pcie0 (reset-gpios gpio1_C3 kept).
++ * Drop wifi_poweren pinctrl — same gpio1_C6 is owned by vcc3v3_pcie0;
++ * leaving both claims makes probe fail: "pin gpio1-22 already requested".
++ * prsnt-gpios omitted (no card-detect on this EVM WiFi path).
++ */
++&pcie0 {
++	vpcie3v3-supply = <&vcc3v3_pcie0>;
++	/delete-property/ pinctrl-names;
++	/delete-property/ pinctrl-0;
++};
++
++/*
++ * rk3576-evb.dtsi gives uart4 uart4m1_xfer+ctsn. CTS is gpio1 RK_PC3 —
++ * same pin as &pcie0 reset-gpios. That yields:
++ *   "pin 51 already requested by 2ad70000.serial; switch mux 9 to GPIO"
++ * and breaks PERST# for AP6275P. Drop CTS (TX/RX only) so PCIe owns PC3.
++ */
++&uart4 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&uart4m1_xfer>;
++};
++
+ &gmac0 {
+ 	/* Use rgmii-rxid mode to disable rx delay inside Soc */
+ 	phy-mode = "rgmii-rxid";

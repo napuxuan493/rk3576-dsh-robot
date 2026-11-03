@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>大肥鱼</title>
+<style>
+  :root {
+    --bg: #000000;
+    --eye: #f4f6f8;
+    --pupil: #0a0a0a;
+    --fish-body: #3aa0d8;
+    --fish-belly: #7ec8e8;
+    --fish-blush: #ff8aa8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    overflow: hidden;
+    cursor: none;
+    font-family: "Noto Sans SC", "Source Han Sans SC", sans-serif;
+  }
+  #stage {
+    position: fixed; inset: 0;
+    background: #000;
+    width: 100vw; height: 100vh;
+  }
+
+  /* Top-left 大肥鱼 */
+  #fish {
+    position: absolute;
+    top: 3.5vh; left: 3vw;
+    width: min(22vw, 280px);
+    height: auto;
+    transform-origin: 60% 50%;
+    animation: fish-bob 2.8s ease-in-out infinite;
+    z-index: 2;
+    filter: drop-shadow(0 8px 18px rgba(40,140,200,.35));
+  }
+  #fish .tail { transform-origin: 12% 50%; animation: fish-tail 0.9s ease-in-out infinite; }
+  #fish .bubble {
+    transform-origin: center;
+    animation: bubble-rise 3.2s ease-in-out infinite;
+    opacity: .55;
+  }
+  #fish-label {
+    position: absolute;
+    top: calc(3.5vh + min(22vw, 280px) * 0.72);
+    left: 3.4vw;
+    color: rgba(255,255,255,.55);
+    font-size: clamp(12px, 1.4vw, 18px);
+    letter-spacing: .12em;
+    user-select: none;
+  }
+
+  /* Center eyes */
+  #eyes {
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -52%);
+    display: flex;
+    gap: clamp(48px, 8vw, 120px);
+    z-index: 1;
+  }
+  .eye {
+    width: clamp(110px, 16vw, 220px);
+    height: clamp(110px, 16vw, 220px);
+    background: var(--eye);
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    box-shadow: inset 0 -10px 28px rgba(0,0,0,.12);
+  }
+  .lid {
+    position: absolute; left: 0; right: 0;
+    background: #000;
+    z-index: 3;
+    pointer-events: none;
+  }
+  .lid.top { top: 0; height: 0%; }
+  .lid.bot { bottom: 0; height: 0%; }
+  .pupil {
+    position: absolute;
+    width: 42%; height: 42%;
+    left: 29%; top: 29%;
+    background: var(--pupil);
+    border-radius: 50%;
+    z-index: 2;
+    transition: transform .25s ease, width .25s ease, height .25s ease, border-radius .25s ease;
+  }
+  .pupil::after {
+    content: "";
+    position: absolute;
+    width: 28%; height: 28%;
+    top: 18%; left: 22%;
+    background: rgba(255,255,255,.85);
+    border-radius: 50%;
+  }
+  .brow {
+    position: absolute;
+    left: 10%; right: 10%;
+    top: -18%;
+    height: 14%;
+    background: transparent;
+    border-top: 6px solid transparent;
+    border-radius: 50%;
+    z-index: 4;
+    opacity: 0;
+    transition: opacity .2s, transform .2s, border-color .2s;
+  }
+
+  /* Emotion modifiers on #eyes[data-state] */
+  #eyes[data-state="happy"] .pupil {
+    width: 38%; height: 28%;
+    top: 40%; border-radius: 50% 50% 45% 45%;
+  }
+  #eyes[data-state="happy"] .lid.bot { height: 28%; }
+  #eyes[data-state="happy"] .brow {
+    opacity: 1; border-top-color: #fff;
+    transform: translateY(8px) scaleY(.6);
+  }
+
+  #eyes[data-state="listening"] .pupil {
+    width: 46%; height: 46%;
+    animation: listen-pulse 1.4s ease-in-out infinite;
+  }
+  #eyes[data-state="listening"] .eye {
+    animation: listen-glow 1.4s ease-in-out infinite;
+  }
+
+  #eyes[data-state="thinking"] .pupil {
+    animation: think-wander 2.6s ease-in-out infinite;
+  }
+  #eyes[data-state="thinking"] .brow {
+    opacity: 1; border-top-color: rgba(255,255,255,.9);
+    transform: rotate(-8deg) translateY(6px);
+  }
+  #eyes .eye.right .brow { transform: rotate(8deg) translateY(6px); }
+  #eyes[data-state="thinking"] .eye.right .brow { transform: rotate(8deg) translateY(6px); }
+
+  #eyes[data-state="speaking"] .pupil {
+    animation: speak-bob .45s ease-in-out infinite;
+  }
+  #eyes[data-state="speaking"] .lid.bot {
+    animation: speak-mouth .45s ease-in-out infinite;
+  }
+
+  /* Idle variants via data-idle */
+  #eyes[data-state="idle"][data-idle="blink"] .lid.top { animation: blink-top .28s ease-in-out; }
+  #eyes[data-state="idle"][data-idle="blink"] .lid.bot { animation: blink-bot .28s ease-in-out; }
+
+  #eyes[data-state="idle"][data-idle="look-left"] .pupil { transform: translateX(-28%); }
+  #eyes[data-state="idle"][data-idle="look-right"] .pupil { transform: translateX(28%); }
+  #eyes[data-state="idle"][data-idle="look-up"] .pupil { transform: translateY(-22%); }
+  #eyes[data-state="idle"][data-idle="sleepy"] .lid.top { height: 38%; transition: height .6s; }
+  #eyes[data-state="idle"][data-idle="sleepy"] .lid.bot { height: 18%; transition: height .6s; }
+  #eyes[data-state="idle"][data-idle="curious"] .pupil {
+    width: 52%; height: 52%; left: 24%; top: 22%;
+  }
+  #eyes[data-state="idle"][data-idle="squint"] .lid.top { height: 30%; }
+  #eyes[data-state="idle"][data-idle="squint"] .lid.bot { height: 22%; }
+
+  @keyframes fish-bob {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(10px) rotate(2deg); }
+  }
+  @keyframes fish-tail {
+    0%,100% { transform: rotate(0deg); }
+    50% { transform: rotate(-18deg); }
+  }
+  @keyframes bubble-rise {
+    0%,100% { transform: translate(0,0) scale(1); opacity: .2; }
+    50% { transform: translate(6px,-14px) scale(1.15); opacity: .7; }
+  }
+  @keyframes listen-pulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+  @keyframes listen-glow {
+    0%,100% { box-shadow: inset 0 -10px 28px rgba(0,0,0,.12), 0 0 0 rgba(120,200,255,0); }
+    50% { box-shadow: inset 0 -10px 28px rgba(0,0,0,.12), 0 0 40px rgba(120,200,255,.35); }
+  }
+  @keyframes think-wander {
+    0%,100% { transform: translate(18%, -10%); }
+    33% { transform: translate(-12%, 8%); }
+    66% { transform: translate(8%, 16%); }
+  }
+  @keyframes speak-bob {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(6%); }
+  }
+  @keyframes speak-mouth {
+    0%,100% { height: 8%; }
+    50% { height: 22%; }
+  }
+  @keyframes blink-top {
+    0%,100% { height: 0%; }
+    50% { height: 52%; }
+  }
+  @keyframes blink-bot {
+    0%,100% { height: 0%; }
+    50% { height: 48%; }
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="fish" viewBox="0 0 240 160" aria-label="大肥鱼">
+    <!-- body -->
+    <ellipse cx="128" cy="88" rx="78" ry="52" fill="#3aa0d8"/>
+    <ellipse cx="118" cy="100" rx="52" ry="32" fill="#7ec8e8" opacity=".85"/>
+    <!-- tail -->
+    <g class="tail">
+      <path d="M48,88 Q18,50 8,78 Q22,88 8,100 Q18,126 48,88 Z" fill="#2b88c0"/>
+      <path d="M48,88 Q28,70 18,88 Q28,106 48,88 Z" fill="#5eb6e0"/>
+    </g>
+    <!-- fin -->
+    <path d="M120,42 Q150,8 168,48 Q140,40 120,42 Z" fill="#2f92c8"/>
+    <path d="M150,100 Q175,120 155,128 Q140,112 150,100 Z" fill="#2f92c8"/>
+    <!-- blush -->
+    <ellipse cx="160" cy="100" rx="10" ry="6" fill="#ff8aa8" opacity=".55"/>
+    <!-- eye on fish -->
+    <circle cx="168" cy="78" r="10" fill="#fff"/>
+    <circle cx="171" cy="78" r="5" fill="#142033"/>
+    <circle cx="173" cy="76" r="1.8" fill="#fff"/>
+    <!-- smile -->
+    <path d="M178,92 Q188,100 196,90" stroke="#1a4060" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- bubbles -->
+    <circle class="bubble" cx="210" cy="48" r="6" fill="#9fd8f0"/>
+    <circle class="bubble" cx="222" cy="30" r="4" fill="#9fd8f0" style="animation-delay:.6s"/>
+    <circle class="bubble" cx="200" cy="24" r="3" fill="#9fd8f0" style="animation-delay:1.2s"/>
+  </svg>
+  <div id="fish-label">大肥鱼</div>
+
+  <div id="eyes" data-state="idle" data-idle="blink">
+    <div class="eye left">
+      <div class="brow"></div>
+      <div class="lid top"></div>
+      <div class="pupil"></div>
+      <div class="lid bot"></div>
+    </div>
+    <div class="eye right">
+      <div class="brow"></div>
+      <div class="lid top"></div>
+      <div class="pupil"></div>
+      <div class="lid bot"></div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  const eyes = document.getElementById("eyes");
+  const IDLE_VARIANTS = ["blink", "look-left", "look-right", "look-up", "sleepy", "curious", "squint"];
+  const ACTIVE = new Set(["happy", "listening", "thinking", "speaking"]);
+  let state = "idle";
+  let idleTimer = null;
+  let pollTimer = null;
+
+  function setEmotion(next, variant) {
+    next = String(next || "idle").toLowerCase();
+    if (next === "idle" || !ACTIVE.has(next)) {
+      state = "idle";
+      eyes.dataset.state = "idle";
+      const v = variant && IDLE_VARIANTS.includes(variant) ? variant : pickIdle();
+      eyes.dataset.idle = v;
+      scheduleIdle();
+      return;
+    }
+    state = next;
+    eyes.dataset.state = next;
+    delete eyes.dataset.idle;
+    clearTimeout(idleTimer);
+  }
+
+  function pickIdle() {
+    return IDLE_VARIANTS[Math.floor(Math.random() * IDLE_VARIANTS.length)];
+  }
+
+  function scheduleIdle() {
+    clearTimeout(idleTimer);
+    if (state !== "idle") return;
+    const hold = eyes.dataset.idle === "blink" ? 320 : 1800 + Math.random() * 2200;
+    idleTimer = setTimeout(function () {
+      if (state !== "idle") return;
+      eyes.dataset.idle = pickIdle();
+      // force reflow for blink replay
+      if (eyes.dataset.idle === "blink") {
+        eyes.dataset.idle = "";
+        void eyes.offsetWidth;
+        eyes.dataset.idle = "blink";
+      }
+      scheduleIdle();
+    }, hold);
+  }
+
+  async function poll() {
+    try {
+      const r = await fetch("/api/emotion", { cache: "no-store" });
+      if (!r.ok) return;
+      const j = await r.json();
+      if (j && j.state) setEmotion(j.state, j.variant);
+    } catch (_) {}
+  }
+
+  // keyboard smoke (optional on board with USB keyboard)
+  window.addEventListener("keydown", function (e) {
+    const map = {
+      "1": "idle", "2": "happy", "3": "listening",
+      "4": "thinking", "5": "speaking",
+      "q": "idle", "w": "happy", "e": "listening",
+      "r": "thinking", "t": "speaking"
+    };
+    if (map[e.key]) setEmotion(map[e.key]);
+  });
+
+  setEmotion("idle", "blink");
+  pollTimer = setInterval(poll, 400);
+  poll();
+})();
+</script>
+</body>
+</html>
