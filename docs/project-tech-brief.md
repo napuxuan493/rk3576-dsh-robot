@@ -41,9 +41,9 @@ grep -E '138|490|43' /sys/kernel/debug/gpio
 ```
 
 **一键强制声路：** `/userdata/xiaozhi-cli/board-audio-up.sh`  
-（store：[`docs/cli-llm-chat/board-audio-up.sh`](./cli-llm-chat/board-audio-up.sh)）  
+（store：[`board/board-audio-up.sh`](../board/board-audio-up.sh)）  
 开机：`/userdata/xiaozhi-cli/S43xiaozhi-audio.sh` → `/etc/init.d/S43xiaozhi-audio`  
-（store：[`docs/cli-llm-chat/S43xiaozhi-audio.sh`](./cli-llm-chat/S43xiaozhi-audio.sh)）
+（store：[`board/S43xiaozhi-audio.sh`](../board/S43xiaozhi-audio.sh)）
 
 | 用途 | 关键 `amixer -c 0` 控件 |
 |------|-------------------------|
@@ -65,7 +65,7 @@ grep -E '138|490|43' /sys/kernel/debug/gpio
 
 `amixer_c` 吞掉所有失败（控件名因驱动版本可能缺）：
 
-```10:12:docs/cli-llm-chat/board-audio-up.sh
+```10:12:board/board-audio-up.sh
 amixer_c() {
 	amixer -c "$CARD" "$@" >/dev/null 2>&1 || return 0
 }
@@ -73,7 +73,7 @@ amixer_c() {
 
 放音核心（`hp switch` → OUT1，关扬声器；音量先绝对值再百分比）：
 
-```15:27:docs/cli-llm-chat/board-audio-up.sh
+```15:27:board/board-audio-up.sh
 amixer_c sset "hp switch" on
 amixer_c sset Headphone on
 amixer_c sset Speaker off
@@ -91,7 +91,7 @@ amixer_c cset name="Right Mixer Right Playback Switch" on
 
 麦路由 A（CON24 实测可用）：Differential + Line 2：
 
-```34:44:docs/cli-llm-chat/board-audio-up.sh
+```34:44:board/board-audio-up.sh
 amixer_c sset "Headset Mic" on
 amixer_c sset "Main Mic" on
 amixer_c sset "Capture Mute" off
@@ -109,7 +109,7 @@ amixer_c sset "Differential Mux" "Line 2"
 
 `start`：等 card0 最多 15s → 调 `board-audio-up.sh`，日志 `/userdata/xiaozhi-cli/audio-up.log`。`stop` 空操作（mixer 状态粘性）。`status` 回读 `hp switch` / Headset Mic / Differential Mux。
 
-```27:37:docs/cli-llm-chat/S43xiaozhi-audio.sh
+```27:37:board/S43xiaozhi-audio.sh
 	# Sound card may appear slightly after local_fs; brief retry.
 	i=0
 	while [ "$i" -lt 15 ]; do
@@ -136,7 +136,7 @@ amixer_c sset "Differential Mux" "Line 2"
 1. Windows 对 USB 网卡开 ICS 共享。
 2. 板：`/userdata/xiaozhi-cli/S42xiaozhi-ics.sh`（软链 `/etc/init.d/S42xiaozhi-ics`）开机跑；或手动  
    `IFACE=eth0 /userdata/xiaozhi-cli/board-eth0-ics-up.sh`  
-   （store：[`S42xiaozhi-ics.sh`](./cli-llm-chat/S42xiaozhi-ics.sh) · [`board-eth0-ics-up.sh`](./cli-llm-chat/board-eth0-ics-up.sh)）
+   （store：[`S42xiaozhi-ics.sh`](../board/S42xiaozhi-ics.sh) · [`board-eth0-ics-up.sh`](../board/board-eth0-ics-up.sh)）
 3. **IFACE 自动选择：** 已有 `.2` 的口 → 有 carrier 的 **eth0** → **eth2** → 任一 `eth*` up。覆盖：`IFACE=ethN`。
 4. `board-eth0-ics-up.sh`：`ip link up` → flush → `192.168.137.2/24` → default via `.1` → `resolv.conf` 写 nameserver `.1`；并从其他口删掉冲突的 `.2`。（/etc/resolv.conf 是 Linux 的 DNS 配置文件：程序查域名时读这里的 nameserver。
 
@@ -151,7 +151,7 @@ app 重刷会丢 `/etc/init.d` 软链，需重链；脚本本体在 **userdata**
 
 `pick_ics_iface` 优先级（与硬事实表一致）：
 
-```21:63:docs/cli-llm-chat/S42xiaozhi-ics.sh
+```21:63:board/S42xiaozhi-ics.sh
 pick_ics_iface() {
 	…
 	# Prefer iface already holding the ICS client address
@@ -179,7 +179,7 @@ pick_ics_iface() {
 3. `route replace default via GW`  
 4. 覆盖 `/etc/resolv.conf` 为 `nameserver $GW`
 
-```9:22:docs/cli-llm-chat/board-eth0-ics-up.sh
+```9:22:board/board-eth0-ics-up.sh
 for n in /sys/class/net/*; do
 	dev="${n##*/}"
 	[ "$dev" = "$IFACE" ] && continue
@@ -219,7 +219,7 @@ curl -sS -b "dsh_mobile=$(grep ^DSH_MOBILE_COOKIE= .env | cut -d= -f2-)" \
   http://192.168.137.1:43127/api/status   # 期望 connected（勿投影 cookie）
 ```
 
-store：[`board-dsh-pair-url.sh`](./cli-llm-chat/board-dsh-pair-url.sh) · [`board-dsh-pair.sh`](./cli-llm-chat/board-dsh-pair.sh) · [`board-dsh.env.example`](./cli-llm-chat/board-dsh.env.example)
+store：[`board-dsh-pair-url.sh`](../board/board-dsh-pair-url.sh) · [`board-dsh-pair.sh`](../board/board-dsh-pair.sh) · [`board-dsh.env.example`](../board/board-dsh.env.example)
 
 **`.env` 写入内容（`/userdata/xiaozhi-cli/.env`，chmod 600）**
 
@@ -242,7 +242,7 @@ store：[`board-dsh-pair-url.sh`](./cli-llm-chat/board-dsh-pair-url.sh) · [`boa
 
 **从不打印 token。** 只回 `token_len=`。
 
-```68:71:docs/cli-llm-chat/board-dsh-pair-url.sh
+```68:71:board/board-dsh-pair-url.sh
 # Export wins over board .env ICS default when pair.sh sources .env.
 export DSH_BASE_URL DSH_PAIR_TOKEN
 echo "Using BASE=$DSH_BASE_URL (from pasted URL; .env will not override)"
@@ -261,7 +261,7 @@ exec "$PAIR_SH"
 6. `write_env_cookie`：upsert `DSH_BASE_URL` + `DSH_MOBILE_COOKIE`，**删掉** `DSH_PAIR_TOKEN`；chmod 600  
 7. 探活 `/api/status`；可选 `GREET_ON_PAIR=1` → `board-greet.sh`（需已有 `DSH_SESSION_ID`）
 
-```107:131:docs/cli-llm-chat/board-dsh-pair.sh
+```107:131:board/board-dsh-pair.sh
 write_env_cookie() {
   …
   text = upsert(text, "DSH_BASE_URL", base)
@@ -335,7 +335,7 @@ $env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
 | 项 | 值 |
 |----|-----|
 | 存放 | **`/userdata/xiaozhi-cli/.env`** → **`DSH_SESSION_ID=…`** |
-| 模板 | store [`docs/cli-llm-chat/board-dsh.env.example`](./cli-llm-chat/board-dsh.env.example) |
+| 模板 | store [`board/board-dsh.env.example`](../board/board-dsh.env.example) |
 | 谁用 | `board-dsh-chat.sh`、`board-voice-once.sh`、语音桥 `POST /v1/voice-turn` 的 form 字段 `sessionId` |
 
 **原理：** Desktop 侧一个 **Agent session**。板/桥用同一 id 调 `:43127` **`session.prompt` / `session.history`**，文字与语音共享上下文与人设。脚本优先读 `.env` 固定 id，避免每次 `session.list[0]` / 新建导致「不像大肥鱼」或 voice-mode **`unknown_session`（403）**。
@@ -353,7 +353,7 @@ $env:DSH_HOME = "$env:APPDATA\dsh-desktop\harness"
 3. 否则 `list[0]`；再空则 `session.create`  
 4. `export DSH_SESSION_ID` 给后续 greet / tts-pull
 
-```269:310:docs/cli-llm-chat/board-dsh-chat.sh
+```269:310:board/board-dsh-chat.sh
 # Prefer pinned session (DSH_SESSION_ID / .env) over list[0] / session.create —
 DSH_SESSION_ID="${DSH_SESSION_ID:-}"
 …
@@ -372,21 +372,21 @@ export DSH_SESSION_ID="$SESSION_ID"
 
 | 脚本 | 行为 |
 |------|------|
-| [`board-voice-once.sh`](./cli-llm-chat/board-voice-once.sh) | `[[ -n "$SESSION_ID" ]] \|\| die`；POST form `-F sessionId=…` |
-| [`board-greet.sh`](./cli-llm-chat/board-greet.sh) | JSON `{"sessionId", "inject": true}` → `/v1/greet` |
-| [`board-proactive-tick.sh`](./cli-llm-chat/board-proactive-tick.sh) | 同上 → `/v1/proactive-tick` |
-| [`board-tts-pull.sh`](./cli-llm-chat/board-tts-pull.sh) | 有 sid 则塞进 body；`SPEAK_INJECT=1` 时注入 Desktop |
+| [`board-voice-once.sh`](../board/board-voice-once.sh) | `[[ -n "$SESSION_ID" ]] \|\| die`；POST form `-F sessionId=…` |
+| [`board-greet.sh`](../board/board-greet.sh) | JSON `{"sessionId", "inject": true}` → `/v1/greet` |
+| [`board-proactive-tick.sh`](../board/board-proactive-tick.sh) | 同上 → `/v1/proactive-tick` |
+| [`board-tts-pull.sh`](../board/board-tts-pull.sh) | 有 sid 则塞进 body；`SPEAK_INJECT=1` 时注入 Desktop |
 
 共性：`_PRE_SESSION` 保存调用方 export → `source .env` → PRE 盖回（临时覆盖 `.env`）。
 
-```69:70:docs/cli-llm-chat/board-voice-once.sh
+```69:70:board/board-voice-once.sh
 SESSION_ID="${DSH_SESSION_ID:-}"
 [[ -n "$SESSION_ID" ]] || die "DSH_SESSION_ID unset — pin same session as board-dsh-chat.sh"
 ```
 
 #### 模板行（`board-dsh.env.example`）
 
-```15:17:docs/cli-llm-chat/board-dsh.env.example
+```15:17:board/board-dsh.env.example
 # Pin Desktop agent/session (preferred over session.list[0] / session.create)
 # Switch: change this value or `DSH_SESSION_ID=… ./board-dsh-chat.sh`
 DSH_SESSION_ID=session-dafeiyu-smoke-1793077192324
@@ -404,7 +404,7 @@ DSH_SESSION_ID=session-dafeiyu-smoke-1793077192324
 |----|-------------|------|
 | Desktop 插件 | **`dsh-voice-mode`**（loopback `:43129` `/voice-mode/*`） | 本机 ASR（zipformer/SenseVoice）；TTS 设置 |
 | TTS 引擎 | **Edge** 默认 **`zh-CN-XiaoxuanNeural`** | 声音模组；`DSH_TTS_VOICE` |
-| LAN 桥 | store [`docs/dsh-voice-bridge/server.mjs`](./dsh-voice-bridge/server.mjs) → 运行 `%USERPROFILE%\dsh-voice-bridge\server.mjs` | 听 **`0.0.0.0:43128`** |
+| LAN 桥 | store [`windows/dsh-voice-bridge/server.mjs`](../windows/dsh-voice-bridge/server.mjs) → 运行 `%USERPROFILE%\dsh-voice-bridge\server.mjs` | 听 **`0.0.0.0:43128`** |
 | 板一回合 | `/userdata/xiaozhi-cli/board-voice-once.sh` | arecord → `POST …/v1/voice-turn` → mpg123/sox → `aplay hw:0,0` |
 | PTT | `/userdata/xiaozhi-cli/board-ptt-hold.sh`（S44） | KEY5 toggle / barge-in → 同上 |
 
@@ -427,7 +427,7 @@ DSH_SESSION_ID=session-dafeiyu-smoke-1793077192324
 
 核心顺序（锁内）：
 
-```1420:1471:docs/dsh-voice-bridge/server.mjs
+```1420:1471:windows/dsh-voice-bridge/server.mjs
         await ensureVoiceSession(sessionId);
         …
           asrText = await asrFinal(sessionId, pcm);
@@ -441,7 +441,7 @@ DSH_SESSION_ID=session-dafeiyu-smoke-1793077192324
 
 `spokenForTts` 硬规则：只要出现【】，**只念括号内**；剥 emotion 标签；无括号才走 thinking/EN 剥离回退：
 
-```862:872:docs/dsh-voice-bridge/server.mjs
+```862:872:windows/dsh-voice-bridge/server.mjs
 function spokenForTts(text) {
   const raw = String(text || "");
   // Hard gate: any 【】 present → bracket interiors ONLY.
@@ -462,7 +462,7 @@ function spokenForTts(text) {
 
 顺序：`source .env`（PRE 覆盖）→ 校验 cookie + **硬要 sessionId** → `board-audio-up` → health → 可选 `board-greet.sh` → `arecord`（或 `USE_EXISTING_REC`）→ `POST /v1/voice-turn` multipart → 读 `x-emotion` → mp3→wav + sox 增益 → `emotion play-start` → `aplay` → `play-end`。
 
-```134:140:docs/cli-llm-chat/board-voice-once.sh
+```134:140:board/board-voice-once.sh
 HTTP=$(curl -sS --http1.1 -m "${VOICE_BRIDGE_TIMEOUT:-180}" -D "$TMP_HDR" -o "$REPLY_WAV" -w "%{http_code}" \
 	-X POST "$TURN_URL" \
 	-H "Cookie: ${COOKIE_HEADER}" \
@@ -499,7 +499,7 @@ HTTP=$(curl -sS --http1.1 -m "${VOICE_BRIDGE_TIMEOUT:-180}" -D "$TMP_HDR" -o "$R
 | 启动 | `/userdata/dafeiyu-hdmi/board-hdmi-emotion-start.sh` |
 | API | `emotion_api.py` → `127.0.0.1:8765` |
 | 资源包 | `/userdata/animation-assets/rk3576-robot-eyes/fb-raw` |
-| store 镜像 | [`docs/cli-llm-chat/hdmi-emotion-ui/`](./cli-llm-chat/hdmi-emotion-ui/) |
+| store 镜像 | [`board/hdmi-emotion-ui/`](../board/hdmi-emotion-ui/) |
 
 **默认视觉参数（start 脚本 export）：**
 
@@ -528,7 +528,7 @@ HTTP=$(curl -sS --http1.1 -m "${VOICE_BRIDGE_TIMEOUT:-180}" -D "$TMP_HDR" -o "$R
 
 从环境读（start 脚本 export）：
 
-```32:54:docs/cli-llm-chat/hdmi-emotion-ui/emotion_fb.py
+```32:54:board/hdmi-emotion-ui/emotion_fb.py
 EYE_SCALE = float(os.environ.get("EYE_SCALE", "1.25"))
 EYE_GAP_X = float(os.environ.get("EYE_GAP_X", "1.28"))
 EYE_SEP = float(os.environ.get("EYE_SEP", "1.4"))
@@ -559,7 +559,7 @@ IDLE_LIVELY = os.environ.get("IDLE_LIVELY", "1") != "0"
 | `play-start [name] [hold]` | 空名 → `speaking`；`POST /api/emotion` `{state,hold}` |
 | `play-end` | `set idle` **带 force**（否则 special lock 压不住 idle） |
 
-```105:118:docs/cli-llm-chat/board-emotion-voice.sh
+```105:118:board/board-emotion-voice.sh
 cmd_play_start() {
 	local emo="${1:-}"
 	local hold="${2:-30}"
@@ -576,7 +576,7 @@ cmd_play_end() {
 
 **voice-once（自播路径）：**
 
-```288:305:docs/cli-llm-chat/board-voice-once.sh
+```288:305:board/board-voice-once.sh
 HOLD_S=$(python3 -c "print(max(2.0, ${rsz}/(48000*2*2)+0.5))" …)
 "$EMOTION_HELPER" ensure || true
 "$EMOTION_HELPER" play-start "${VOICE_EMOTION:-}" "$HOLD_S" || true

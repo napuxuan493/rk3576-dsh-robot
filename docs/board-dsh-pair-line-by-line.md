@@ -1,6 +1,6 @@
 # `board-dsh-pair.sh` 逐行讲解
 
-路径：store `docs/cli-llm-chat/board-dsh-pair.sh` → 板 `/userdata/xiaozhi-cli/board-dsh-pair.sh`。  
+路径：repo `board/board-dsh-pair.sh` → 板 `/userdata/xiaozhi-cli/board-dsh-pair.sh`。  
 作用：用短时 pair token 访问 Desktop `:43127/pair`，拿到 `dsh_mobile` cookie，写入同目录 `.env`（不打印密钥）。
 
 ---

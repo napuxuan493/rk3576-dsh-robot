@@ -21,7 +21,7 @@ FPS: capped **`EMOTION_FPS=12`**; offscreen present. IPD **`EYE_SEP=1.4`**; elli
 
 Install tree (also mirrored in store):
 
-`docs/cli-llm-chat/hdmi-emotion-ui/` → board **`/userdata/dafeiyu-hdmi/`** (and `/opt/dafeiyu-hdmi/` when used)
+`board/hdmi-emotion-ui/` → board **`/userdata/dafeiyu-hdmi/`** (and `/opt/dafeiyu-hdmi/` when used)
 
 | File | Role |
 |------|------|

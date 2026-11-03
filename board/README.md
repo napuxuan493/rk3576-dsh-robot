@@ -85,7 +85,7 @@ adb shell 'chmod +x /userdata/xiaozhi-cli/chat.sh && cd /userdata/xiaozhi-cli &&
 
 ## Context 镜像
 
-同内容副本：`docs/cli-llm-chat/`（含 README、env.example、chat.sh、board-dsh-*、board-net-test、smoke-log；**不含** `.env`）。
+本目录是板端运行时脚本源（部署到板上仍为 `/userdata/xiaozhi-cli/`；**勿提交**真实 `.env`）。
 
 ## 错误提示
 

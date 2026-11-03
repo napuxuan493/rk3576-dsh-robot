@@ -6,11 +6,11 @@
 | 字段 | 值 |
 |------|-----|
 | **Listen URL** | **`http://192.168.137.1:43128`**（绑定 `0.0.0.0:43128`；本机 `http://127.0.0.1:43128`） |
-| 板脚本 | [`cli-llm-chat/board-voice-once.sh`](./cli-llm-chat/board-voice-once.sh)；PTT：[`board-ptt-key5.md`](./board-ptt-key5.md) / `board-ptt-hold.sh` |
-| 文本会话 | 同 [`board-dsh-chat.sh`](./cli-llm-chat/board-dsh-chat.sh)：`DSH_MOBILE_COOKIE` + **`DSH_SESSION_ID`** |
+| 板脚本 | [`board/board-voice-once.sh`](../board/board-voice-once.sh)；PTT：[`board-ptt-key5.md`](./board-ptt-key5.md) / `board-ptt-hold.sh` |
+| 文本会话 | 同 [`board-dsh-chat.sh`](../board/board-dsh-chat.sh)：`DSH_MOBILE_COOKIE` + **`DSH_SESSION_ID`** |
 | 手机桥聊天 | `:43127` `/api/rpc` |
 | voice-mode | `:43129` `/voice-mode/*` **loopback only** — 桥在本机代调 |
-| 实现 | [`docs/dsh-voice-bridge/server.mjs`](./dsh-voice-bridge/server.mjs) → 运行副本 `%USERPROFILE%\dsh-voice-bridge\` |
+| 实现 | [`windows/dsh-voice-bridge/server.mjs`](../windows/dsh-voice-bridge/server.mjs) → 运行副本 `%USERPROFILE%\dsh-voice-bridge\` |
 | **默认音色** | **`zh-CN-XiaoxuanNeural`**（御姐向；`DSH_TTS_VOICE` + voice-mode settings） |
 | 插件说明 | [`dsh-voice-plugins.md`](./dsh-voice-plugins.md) |
 | 御姐样例 | [`media/dafeiyu-yujie-xiaoxuan.mp3`](../media/dafeiyu-yujie-xiaoxuan.mp3) |
@@ -25,7 +25,7 @@ cd $env:USERPROFILE\dsh-voice-bridge
 node .\server.mjs
 ```
 
-可选环境变量见 [`dsh-voice-bridge/env.example`](./dsh-voice-bridge/env.example)。  
+可选环境变量见 [`windows/dsh-voice-bridge/env.example`](../windows/dsh-voice-bridge/env.example)。  
 防火墙：入站 **TCP 43128**（建议仅 `192.168.137.0/24`），与 43127 同策略。
 
 冒烟：
@@ -109,11 +109,11 @@ curl http://192.168.137.1:43128/health
 
 | 脚本 | 何时 |
 |------|------|
-| [`board-greet.sh`](./cli-llm-chat/board-greet.sh) | `board-dsh-chat.sh` / `board-voice-once.sh` 开场；可选 `GREET_ON_PAIR=1` 于 [`board-dsh-pair.sh`](./cli-llm-chat/board-dsh-pair.sh) |
-| [`board-proactive-tick.sh`](./cli-llm-chat/board-proactive-tick.sh) | `VOICE_IDLE_SECS` / `PROACTIVE_IDLE_S` 后台循环；或手动 |
-| [`board-tts-pull.sh`](./cli-llm-chat/board-tts-pull.sh) | 任意 `/v1/speak` |
+| [`board-greet.sh`](../board/board-greet.sh) | `board-dsh-chat.sh` / `board-voice-once.sh` 开场；可选 `GREET_ON_PAIR=1` 于 [`board-dsh-pair.sh`](../board/board-dsh-pair.sh) |
+| [`board-proactive-tick.sh`](../board/board-proactive-tick.sh) | `VOICE_IDLE_SECS` / `PROACTIVE_IDLE_S` 后台循环；或手动 |
+| [`board-tts-pull.sh`](../board/board-tts-pull.sh) | 任意 `/v1/speak` |
 
-板 `.env`：`VOICE_GREET=1`（默认）、`VOICE_IDLE_SECS=180`（可选）、见 [`board-dsh.env.example`](./cli-llm-chat/board-dsh.env.example)。
+板 `.env`：`VOICE_GREET=1`（默认）、`VOICE_IDLE_SECS=180`（可选）、见 [`board-dsh.env.example`](../board/board-dsh.env.example)。
 
 人设：[`dafeiyu-persona.md`](./dafeiyu-persona.md) §主动说话；改完按 [`dsh-dafeiyu-persona-setup.md`](./dsh-dafeiyu-persona-setup.md) 灌入 `cordis.patch.yml` 并重启 Desktop。
 
@@ -267,7 +267,7 @@ ffmpeg -y -i last-reply.mp3 last-reply.wav && aplay -D hw:0,0 last-reply.wav
 ### `POST /v1/tts`（板端「主动播」现用）
 
 JSON `{"text":"…"}` → `audio/mpeg`（Edge）或 wav。需 cookie 或 bridge token。  
-板脚本：[`cli-llm-chat/board-tts-pull.sh`](./cli-llm-chat/board-tts-pull.sh)
+板脚本：[`board/board-tts-pull.sh`](../board/board-tts-pull.sh)
 
 ```bash
 ./board-tts-pull.sh '你好，我是小智'     # 无麦，只拉 TTS 播放
@@ -281,7 +281,7 @@ JSON `{ "text", "sessionId"?, "voice"?, "inject"? }` → 默认 **`zh-CN-Xiaoxua
 
 板端冒烟（2026-10-28 ~17:50）：`./board-tts-pull.sh '你好，我是大飞鱼'` → `/v1/speak` **200** → 48 kHz aplay **exit 0**（`TTS_SOX_GAIN=1`）。样例 mp3：[`media/dafeiyu-yujie-xiaoxuan.mp3`](./media/dafeiyu-yujie-xiaoxuan.mp3)。
 
-**聊天 / voice 开场自动问候：** `board-dsh-chat.sh` 与 `board-voice-once.sh` 在拿到 `SESSION_ID` 后默认 `VOICE_GREET=1` / `GREET_ON_START=1` → [`board-greet.sh`](./cli-llm-chat/board-greet.sh) → **`POST /v1/greet`**（`inject:true`，once/session）。可选 `VOICE_IDLE_SECS` / `PROACTIVE_IDLE_S`（秒）后台调 [`board-proactive-tick.sh`](./cli-llm-chat/board-proactive-tick.sh)。`GREET_ON_PAIR=1` 可在 pair 成功后问候一次。无 `board-greet.sh` 时 chat 回退 `SPEAK_INJECT=1 board-tts-pull`。
+**聊天 / voice 开场自动问候：** `board-dsh-chat.sh` 与 `board-voice-once.sh` 在拿到 `SESSION_ID` 后默认 `VOICE_GREET=1` / `GREET_ON_START=1` → [`board-greet.sh`](../board/board-greet.sh) → **`POST /v1/greet`**（`inject:true`，once/session）。可选 `VOICE_IDLE_SECS` / `PROACTIVE_IDLE_S`（秒）后台调 [`board-proactive-tick.sh`](../board/board-proactive-tick.sh)。`GREET_ON_PAIR=1` 可在 pair 成功后问候一次。无 `board-greet.sh` 时 chat 回退 `SPEAK_INJECT=1 board-tts-pull`。
 ### `GET /v1/last-reply`
 
 上一回合音频缓存。

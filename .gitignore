@@ -1,16 +1,33 @@
-﻿.env
+﻿# Secrets / local env
+.env
 *.env
 !.env.example
 !**/*.env.example
-**/__pycache__/
-*.pyc
-*.bak
-*.bak*
 cookies
 *credentials*
 *secret*
+
+# Backups
+*.bak
+*.bak*
+*~
+
+# Node (bridge has no runtime deps; ignore if npm is used locally)
+node_modules/
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Board audio captures / media dumps
+last-*.wav
+media/
 *.img
 boot.img
-media/
-internal/
 *.tar.gz
+
+# Local / agent working notes
+internal/
+.DS_Store
+Thumbs.db

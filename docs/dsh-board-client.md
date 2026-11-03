@@ -60,7 +60,7 @@ Content-Type: application/json
 
 ### `.env`（chmod 600）
 
-见 [`cli-llm-chat/board-dsh.env.example`](./cli-llm-chat/board-dsh.env.example)。
+见 [`board/board-dsh.env.example`](../board/board-dsh.env.example)。
 
 | 变量 | 含义 |
 |------|------|
@@ -73,9 +73,9 @@ Content-Type: application/json
 
 | 文件 | 作用 |
 |------|------|
-| [`board-dsh-pair-url.sh`](./cli-llm-chat/board-dsh-pair-url.sh) | **推荐**：粘贴完整 `http://HOST:PORT/pair?token=…` → 解析 base+token → pair → `.env` |
-| [`board-dsh-pair.sh`](./cli-llm-chat/board-dsh-pair.sh) | LAN pair（`DSH_PAIR_TOKEN` / 或同样接受完整 URL）→ cookie → `.env`（不打印秘密） |
-| [`board-dsh-chat.sh`](./cli-llm-chat/board-dsh-chat.sh) | 多轮 `/api/rpc` 聊天 |
+| [`board-dsh-pair-url.sh`](../board/board-dsh-pair-url.sh) | **推荐**：粘贴完整 `http://HOST:PORT/pair?token=…` → 解析 base+token → pair → `.env` |
+| [`board-dsh-pair.sh`](../board/board-dsh-pair.sh) | LAN pair（`DSH_PAIR_TOKEN` / 或同样接受完整 URL）→ cookie → `.env`（不打印秘密） |
+| [`board-dsh-chat.sh`](../board/board-dsh-chat.sh) | 多轮 `/api/rpc` 聊天 |
 
 ### 操作顺序
 
@@ -103,4 +103,4 @@ Content-Type: application/json
 2. 经桥的 `session.prompt` payload 需与当前 Desktop 转发对齐；脚本按白名单封装。  
 3. MVP 用 `session.history` 拉回复；完整流式 follow 桥未直接暴露。  
 
-相关：[`dsh-pc-setup.md`](./dsh-pc-setup.md)、[`cli-llm-chat/README.md`](./cli-llm-chat/README.md)。
+相关：[`dsh-pc-setup.md`](./dsh-pc-setup.md)、[`board/README.md`](../board/README.md)。

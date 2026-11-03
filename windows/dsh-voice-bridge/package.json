@@ -1,0 +1,13 @@
+{
+  "name": "dsh-voice-bridge",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LAN voice bridge for RK3576 board ↔ DSH Desktop (no npm dependencies)",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

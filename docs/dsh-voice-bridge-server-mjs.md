@@ -1,6 +1,6 @@
 # `server.mjs` 分节讲解（DSH LAN 语音桥）
 
-路径：store `docs/dsh-voice-bridge/server.mjs` → Windows 运行副本 `%USERPROFILE%\dsh-voice-bridge\server.mjs`。  
+路径：repo `windows/dsh-voice-bridge/server.mjs` → Windows 运行副本 `%USERPROFILE%\dsh-voice-bridge\server.mjs`。  
 作用：板端 WAV → PC 本机 **ASR**（`:43129` voice-mode）→ 同会话 **`session.prompt`**（`:43127`）→ **TTS** → 音频回板。契约总览见 [`dsh-voice-bridge.md`](./dsh-voice-bridge.md)。
 
 **端口角色**
